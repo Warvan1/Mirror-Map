@@ -34,10 +34,10 @@ public class DatabaseUpdater implements Runnable{
 
     //used to update the database every 24 hours in a thread
     public void run(){
+        //get a pointer to the maxmind handler object
+        DatabaseHandler maxmind = DatabaseHandler.getInstance();
         while(true){
             try{
-                //get a pointer to the maxmind handler object
-                DatabaseHandler maxmind = DatabaseHandler.getInstance();
                 //download the database
                 downloadDatabase();
                 //configure the database handler for the database file
