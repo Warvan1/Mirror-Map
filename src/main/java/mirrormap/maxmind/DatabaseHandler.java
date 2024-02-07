@@ -1,4 +1,4 @@
-package com.github.warvan1.mirrormap.maxmind;
+package mirrormap.maxmind;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,9 +30,14 @@ public class DatabaseHandler {
     }
 
     //initialize the maxmind database handler based on its file location
-    public void ConfigureHandler() throws IOException {
-        File geoLite2Directory = new File(DATABASE_DESTINATION_DIR + "/" + new File(DATABASE_DESTINATION_DIR).list()[0] + "/GeoLite2-City.mmdb");
-        reader = new DatabaseReader.Builder(geoLite2Directory).build();
+    public void ConfigureHandler(){
+        try{
+            File geoLite2Directory = new File(DATABASE_DESTINATION_DIR + "/" + new File(DATABASE_DESTINATION_DIR).list()[0] + "/GeoLite2-City.mmdb");
+            reader = new DatabaseReader.Builder(geoLite2Directory).build();
+        }
+        catch(IOException e){
+            e.printStackTrace();
+        }
     }
 
     //used to get the latitude and longitude based on the ip using the maxmind database reader

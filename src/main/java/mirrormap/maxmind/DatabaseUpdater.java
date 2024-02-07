@@ -1,4 +1,4 @@
-package com.github.warvan1.mirrormap.maxmind;
+package mirrormap.maxmind;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,66 +37,76 @@ public class DatabaseUpdater implements Runnable{
         //get a pointer to the maxmind handler object
         DatabaseHandler maxmind = DatabaseHandler.getInstance();
         while(true){
+            //download the database
+            downloadDatabase();
+            //configure the database handler for the database file
+            maxmind.ConfigureHandler();
+
             try{
-                //download the database
-                downloadDatabase();
-                //configure the database handler for the database file
-                maxmind.ConfigureHandler();
-    
+                //TODO: Change to sleep till 1am (or midnight)
                 //sleep for 1 day
                 Thread.sleep(86400000);
             }
-            catch(IOException | GeneralSecurityException | InterruptedException e){
-                System.err.println(e);
+            catch(InterruptedException e){
+                e.printStackTrace();
             }
         }
     }
 
     //downloads the maxmind GeoLite2-City database
-    private void downloadDatabase() throws IOException, GeneralSecurityException{
-        //download the Database tar.gz file and the checksum file
-        downloadFile(DATABASE_URL + maxmindLisense, DATABASE_FILENAME);
-        downloadFile(CHECKSUM_URL + maxmindLisense, CHECKSUM_FILENAME);
+    private void downloadDatabase(){
+        try{
+            //download the Database tar.gz file and the checksum file
+            downloadFile(DATABASE_URL + maxmindLisense, DATABASE_FILENAME);
+            downloadFile(CHECKSUM_URL + maxmindLisense, CHECKSUM_FILENAME);
 
-        //retrieve the checksum from the checksum file
-        String checksum = Files.readString(Path.of(CHECKSUM_FILENAME)).split(" ", 2)[0];
+            //retrieve the checksum from the checksum file
+            String checksum = Files.readString(Path.of(CHECKSUM_FILENAME)).split(" ", 2)[0];
 
-        //compute the checksum from the database tar.gz file
-        byte[] database = Files.readAllBytes(Path.of(DATABASE_FILENAME));
-        byte[] hash = MessageDigest.getInstance("SHA-256").digest(database);
-        String calculated_checksum = new BigInteger(1, hash).toString(16);
+            //compute the checksum from the database tar.gz file
+            byte[] database = Files.readAllBytes(Path.of(DATABASE_FILENAME));
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(database);
+            String calculated_checksum = new BigInteger(1, hash).toString(16);
 
-        //check to make sure that both the downloaded checksum and the calculated checksum are the same
-        if(!checksum.equals(calculated_checksum)){
-            throw new GeneralSecurityException("checksum failed.");
+            //check to make sure that both the downloaded checksum and the calculated checksum are the same
+            if(!checksum.equals(calculated_checksum)){
+                checksum = checksum.substring(1);
+                if(!checksum.equals(calculated_checksum)){ //sometimes the checksum from maxmind has a leading 0
+                    System.err.println("database checksum failed");
+                    return;
+                }
+            }
+
+            //object used to unzip the database tar.gz file
+            final TarGZipUnArchiver ua = new TarGZipUnArchiver();
+
+            //set up loging for TarGZip as its required for it to function
+            ConsoleLoggerManager manager = new ConsoleLoggerManager();
+            manager.initialize();
+            ua.enableLogging(manager.getLoggerForComponent(""));
+
+            //create a new File object for the location where we want to extract to
+            File destDir = new File(DATABASE_DESTINATION_DIR);
+            //if it doesnt exist create the folder 
+            //else empty the folder of its contents
+            if(!destDir.exists()){
+                destDir.mkdir();
+            }
+            else{
+                FileUtils.cleanDirectory(destDir);
+            }
+            //extract the file
+            ua.setSourceFile(new File(DATABASE_FILENAME));
+            ua.setDestDirectory(destDir);
+            ua.extract();
         }
-
-        //object used to unzip the database tar.gz file
-        final TarGZipUnArchiver ua = new TarGZipUnArchiver();
-
-        //set up loging for TarGZip as its required for it to function
-        ConsoleLoggerManager manager = new ConsoleLoggerManager();
-        manager.initialize();
-        ua.enableLogging(manager.getLoggerForComponent(""));
-
-        //create a new File object for the location where we want to extract to
-        File destDir = new File(DATABASE_DESTINATION_DIR);
-        //if it doesnt exist create the folder 
-        //else empty the folder of its contents
-        if(!destDir.exists()){
-            destDir.mkdir();
+        catch(IOException | GeneralSecurityException e){
+            e.printStackTrace();
         }
-        else{
-            FileUtils.cleanDirectory(destDir);
-        }
-        //extract the file
-        ua.setSourceFile(new File(DATABASE_FILENAME));
-        ua.setDestDirectory(destDir);
-        ua.extract();
     }
 
     //downloads a file from a given url over http
-    private void downloadFile(String url, String fileName) throws IOException {
+    private void downloadFile(String url, String fileName) throws IOException{
         //open a http connection to the given url 
         HttpURLConnection httpConn = (HttpURLConnection) new URL(url).openConnection();
         int responseCode = httpConn.getResponseCode();

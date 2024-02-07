@@ -1,12 +1,12 @@
-package com.github.warvan1.mirrormap.main;
+package mirrormap.main;
 
 import java.io.IOException;
 import java.lang.Thread;
 
-import com.github.warvan1.mirrormap.maxmind.DatabaseHandler;
-import com.github.warvan1.mirrormap.maxmind.DatabaseUpdater;
-
 import com.maxmind.geoip2.exception.GeoIp2Exception;
+
+import mirrormap.maxmind.DatabaseHandler;
+import mirrormap.maxmind.DatabaseUpdater;
 
 public class MirrorMapApplication {
 
@@ -21,7 +21,7 @@ public class MirrorMapApplication {
             System.out.println(latlong[0] + " " + latlong[1]);
         }
         catch(IOException | GeoIp2Exception | InterruptedException e){
-            System.err.println(e);
+            e.printStackTrace();
             return;
         }
         

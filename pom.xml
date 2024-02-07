@@ -45,7 +45,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.github.warvan1.mirrormap.main.MirrorMapApplication</mainClass>
+                            <mainClass>mirrormap.main.MirrorMapApplication</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
