@@ -30,7 +30,7 @@ public class DatabaseUpdater implements Runnable{
 
     //read maxmind lisense key from .env file
     private Dotenv dotenv = Dotenv.load();
-    private String maxmindLisense = dotenv.get("MAXMIND_LISENSE");
+    private String maxmindLicense = dotenv.get("MAXMIND_LICENSE");
 
     //used to update the database every 24 hours in a thread
     public void run(){
@@ -49,6 +49,7 @@ public class DatabaseUpdater implements Runnable{
             }
             catch(InterruptedException e){
                 e.printStackTrace();
+                break;
             }
         }
     }
@@ -57,8 +58,8 @@ public class DatabaseUpdater implements Runnable{
     private void downloadDatabase(){
         try{
             //download the Database tar.gz file and the checksum file
-            downloadFile(DATABASE_URL + maxmindLisense, DATABASE_FILENAME);
-            downloadFile(CHECKSUM_URL + maxmindLisense, CHECKSUM_FILENAME);
+            downloadFile(DATABASE_URL + maxmindLicense, DATABASE_FILENAME);
+            downloadFile(CHECKSUM_URL + maxmindLicense, CHECKSUM_FILENAME);
 
             //retrieve the checksum from the checksum file
             String checksum = Files.readString(Path.of(CHECKSUM_FILENAME)).split(" ", 2)[0];
